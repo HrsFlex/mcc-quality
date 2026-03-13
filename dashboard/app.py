@@ -110,6 +110,11 @@ html, body, [class*="css"] {
 /* ── Main background ─────────────────────────── */
 .stApp { background-color: #F4F6F9; }
 
+/* ── Hide Streamlit toolbar (Share, bookmark, GitHub icons) ── */
+[data-testid="stToolbar"]        { display: none !important; }
+[data-testid="stDecoration"]     { display: none !important; }
+header[data-testid="stHeader"]   { background: transparent !important; }
+
 /* ── Sidebar ─────────────────────────────────── */
 section[data-testid="stSidebar"] {
     background: #FFFFFF;
