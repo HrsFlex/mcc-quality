@@ -1,0 +1,26 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+
+# Local development artifacts
+outputs/
+*.log
+
+# Secrets (never commit credentials)
+.env
+secrets.toml
+.streamlit/secrets.toml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Temporary scripts
+verify_run.py
+reset_db.py
