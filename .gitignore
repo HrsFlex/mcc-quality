@@ -4,14 +4,19 @@ __pycache__/
 *.pyo
 .pytest_cache/
 
+# ── Data files — NEVER commit raw client data or live databases ─────────────────
+quality.db          # SQLite live database — use data/incidents.parquet for cloud
+*.db
+*.db-shm
+*.db-wal
+
 # Local development artifacts
 outputs/
 *.log
 
-# Secrets (never commit credentials)
+# ── Secrets — NEVER commit credentials ─────────────────────────────────────────
 .env
-secrets.toml
-.streamlit/secrets.toml
+.streamlit/secrets.toml    # Local secrets (use Streamlit Cloud Secrets UI for cloud)
 
 # OS files
 .DS_Store
@@ -21,6 +26,8 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Temporary scripts
+# Temporary / one-shot scripts
 verify_run.py
 reset_db.py
+export_to_parquet.py
+

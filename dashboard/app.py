@@ -20,7 +20,73 @@ if _root not in sys.path:
 
 import config as cfg
 
-# ── Page config ─────────────────────────────────────────────────────────────────
+# ── Password gate ────────────────────────────────────────────────────────────────
+# Password is stored exclusively in Streamlit Secrets (APP_PASSWORD).
+# On Streamlit Cloud: Settings → Secrets → add APP_PASSWORD = "your-password"
+# Locally: .streamlit/secrets.toml (never committed to git)
+# If APP_PASSWORD secret is not present, the gate is bypassed (local dev only).
+def _require_auth() -> None:
+    pw_secret: str = st.secrets.get("APP_PASSWORD", "")
+    if not pw_secret:
+        return  # No secret configured — local dev mode, allow through
+
+    if st.session_state.get("_auth_ok"):
+        return  # Already authenticated this session
+
+    # ── Render login screen ────────────────────────────────────────────────────
+    st.markdown("""
+    <style>
+    .stApp { background: #F4F6F9; }
+    </style>
+    """, unsafe_allow_html=True)
+
+    col_l, col_c, col_r = st.columns([1, 1.4, 1])
+    with col_c:
+        st.markdown("<br><br>", unsafe_allow_html=True)
+        _logo_dir_auth = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "logo")
+        try:
+            import base64 as _b64
+            with open(os.path.join(_logo_dir_auth, "mcc-logo.png"), "rb") as _f:
+                _mcc_auth = _b64.b64encode(_f.read()).decode()
+            st.markdown(
+                f'<div style="text-align:center;margin-bottom:24px;">'
+                f'<img src="data:image/png;base64,{_mcc_auth}" height="52" /></div>',
+                unsafe_allow_html=True,
+            )
+        except Exception:
+            st.markdown("### MCC Quality Insights Dashboard", unsafe_allow_html=False)
+
+        st.markdown(
+            "<div style='text-align:center;font-size:18px;font-weight:700;"
+            "color:#1A1A2E;margin-bottom:4px;'>Quality Insights Dashboard</div>"
+            "<div style='text-align:center;font-size:12px;color:#5C6272;"
+            "margin-bottom:28px;'>Enterprise Quality Performance — Confidential</div>",
+            unsafe_allow_html=True,
+        )
+
+        with st.form("login_form", clear_on_submit=True):
+            entered = st.text_input("Access Password", type="password",
+                                    placeholder="Enter password to continue")
+            submitted = st.form_submit_button("Sign In", use_container_width=True)
+
+        if submitted:
+            if entered == pw_secret:
+                st.session_state["_auth_ok"] = True
+                st.rerun()
+            else:
+                st.error("Incorrect password. Please try again.")
+
+        st.markdown(
+            "<div style='text-align:center;font-size:10px;color:#aaa;margin-top:32px;'>"
+            "Prepared by Blend for MCC Label Solutions</div>",
+            unsafe_allow_html=True,
+        )
+    st.stop()   # Block all further rendering until authenticated
+
+
+_require_auth()
+
+
 st.set_page_config(
     page_title=cfg.DASHBOARD_TITLE,
     page_icon=os.path.join(_root, "logo", "mcc-logo.png"),
@@ -234,16 +300,33 @@ st.markdown(f"""
 
 
 # ── Data loading ────────────────────────────────────────────────────────────────
-@st.cache_data(ttl=300, show_spinner="Loading data from database...")
-def load_data():
-    if not os.path.exists(cfg.DB_PATH):
-        return pd.DataFrame()
-    conn = sqlite3.connect(cfg.DB_PATH)
-    df = pd.read_sql_query(
-        "SELECT * FROM quality_incidents", conn, parse_dates=["incident_date"]
-    )
-    conn.close()
-    return df
+@st.cache_data(ttl=300, show_spinner="Loading data...")
+def load_data() -> pd.DataFrame:
+    """
+    Load priority:
+      1. SQLite (local development / pipeline has run)
+      2. Parquet snapshot (Streamlit Cloud — bundled in data/incidents.parquet)
+    """
+    # 1. SQLite (preferred — always up to date after a pipeline run)
+    if os.path.exists(cfg.DB_PATH):
+        try:
+            conn = sqlite3.connect(cfg.DB_PATH)
+            df = pd.read_sql_query(
+                "SELECT * FROM quality_incidents", conn,
+                parse_dates=["incident_date"],
+            )
+            conn.close()
+            if not df.empty:
+                return df
+        except Exception:
+            pass
+
+    # 2. Parquet snapshot (cloud deployment fallback)
+    parquet_path = os.path.join(_root, "data", "incidents.parquet")
+    if os.path.exists(parquet_path):
+        return pd.read_parquet(parquet_path)
+
+    return pd.DataFrame()
 
 
 df_all = load_data()
