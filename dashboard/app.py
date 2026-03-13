@@ -110,10 +110,13 @@ html, body, [class*="css"] {
 /* ── Main background ─────────────────────────── */
 .stApp { background-color: #F4F6F9; }
 
-/* ── Hide Streamlit toolbar (Share, bookmark, GitHub icons) ── */
-[data-testid="stToolbar"]        { display: none !important; }
-[data-testid="stDecoration"]     { display: none !important; }
-header[data-testid="stHeader"]   { background: transparent !important; }
+/* ── Hide ALL Streamlit chrome — users cannot access source/code ── */
+[data-testid="stToolbar"]         { display: none !important; }
+[data-testid="stDecoration"]      { display: none !important; }
+[data-testid="stStatusWidget"]    { display: none !important; }
+header[data-testid="stHeader"]    { background: transparent !important; }
+#MainMenu                         { display: none !important; }  /* hamburger ≡ */
+footer                            { display: none !important; }  /* "Made with Streamlit" */
 
 /* ── Sidebar ─────────────────────────────────── */
 section[data-testid="stSidebar"] {
