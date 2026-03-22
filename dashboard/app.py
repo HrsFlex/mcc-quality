@@ -26,7 +26,11 @@ import config as cfg
 # Locally: .streamlit/secrets.toml (never committed to git)
 # If APP_PASSWORD secret is not present, the gate is bypassed (local dev only).
 def _require_auth() -> None:
-    pw_secret: str = st.secrets.get("APP_PASSWORD", "")
+    try:
+        pw_secret: str = st.secrets.get("APP_PASSWORD", "")
+    except Exception:
+        pw_secret = ""
+    
     if not pw_secret:
         return  # No secret configured — local dev mode, allow through
 
@@ -50,7 +54,7 @@ def _require_auth() -> None:
                 _mcc_auth = _b64.b64encode(_f.read()).decode()
             st.markdown(
                 f'<div style="text-align:center;margin-bottom:24px;">'
-                f'<img src="data:image/png;base64,{_mcc_auth}" height="52" /></div>',
+                f'<img src="data:image/png;base64,{_mcc_auth}" height="80" /></div>',
                 unsafe_allow_html=True,
             )
         except Exception:
@@ -108,7 +112,7 @@ html, body, [class*="css"] {
 }
 
 /* ── Main background ─────────────────────────── */
-.stApp { background-color: #F4F6F9; }
+.stApp { background-color: #F8FAFC; }
 
 /* ── Hide ALL Streamlit chrome — users cannot access source/code ── */
 [data-testid="stToolbar"]         { display: none !important; }
@@ -121,7 +125,8 @@ footer                            { display: none !important; }  /* "Made with S
 /* ── Sidebar ─────────────────────────────────── */
 section[data-testid="stSidebar"] {
     background: #FFFFFF;
-    border-right: 3px solid #6DB0E2;
+    border-right: 1px solid #E2E8F0;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.02);
 }
 section[data-testid="stSidebar"] * { color: #1A1A2E !important; }
 section[data-testid="stSidebar"] h1,
@@ -137,12 +142,15 @@ section[data-testid="stSidebar"] .stButton > button {
     background: #6DB0E2;
     color: #FFFFFF;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     font-weight: 600;
     width: 100%;
+    transition: all 0.2s ease;
 }
 section[data-testid="stSidebar"] .stButton > button:hover {
     background: #4a9dd4;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(109,176,226,0.2);
 }
 
 /* ── Page header bar ─────────────────────────── */
@@ -172,35 +180,41 @@ section[data-testid="stSidebar"] .stButton > button:hover {
 .brand-header {
     background: #FFFFFF;
     border-bottom: 3px solid #6DB0E2;
-    padding: 12px 24px;
+    padding: 20px 32px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
     border-radius: 8px;
     box-shadow: 0 1px 6px rgba(109,176,226,.10);
 }
 .brand-title {
-    font-size: 15px;
-    font-weight: 600;
+    font-size: 24px;
+    font-weight: 700;
     color: #1A1A2E;
-    letter-spacing: .3px;
+    letter-spacing: .5px;
 }
 .brand-sub {
-    font-size: 11px;
+    font-size: 14px;
     color: #5C6272;
-    margin-top: 2px;
+    margin-top: 4px;
     letter-spacing: .2px;
 }
 
 /* ── KPI Cards ───────────────────────────────── */
 .kpi-card {
     background: #FFFFFF;
-    border-radius: 8px;
-    padding: 18px 22px;
-    box-shadow: 0 2px 8px rgba(109,176,226,.10);
+    border-radius: 12px;
+    padding: 22px 24px;
+    border: 1px solid #E2E8F0;
     border-top: 4px solid #6DB0E2;
-    margin-bottom: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
+    margin-bottom: 12px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.kpi-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.04);
 }
 .kpi-card.green  { border-top-color: #2FAC67; }
 .kpi-card.yellow { border-top-color: #FED742; }
@@ -242,11 +256,16 @@ h1, h2, h3 { color: #1A1A2E; font-weight: 700; }
     background: #2FAC67;
     color: #FFFFFF;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     font-weight: 600;
     padding: 8px 20px;
+    transition: all 0.2s ease;
 }
-.stDownloadButton > button:hover { background: #259958; }
+.stDownloadButton > button:hover { 
+    background: #259958;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(47,172,103,0.2); 
+}
 
 /* ── Tabs ────────────────────────────────────── */
 button[data-baseweb="tab"] { font-weight: 600; color: #1A1A2E; }
@@ -294,14 +313,14 @@ _blend_b64 = _img_b64(os.path.join(_logo_dir, "blend_logo.png"))
 st.markdown(f"""
 <div class="brand-header">
   <div>
-    <img src="data:image/png;base64,{_mcc_b64}" height="42" alt="MCC Premium Label Solutions" />
+    <img src="data:image/png;base64,{_mcc_b64}" height="80" alt="MCC Premium Label Solutions" />
   </div>
   <div style="text-align:center;">
     <div class="brand-title">Quality Insights Dashboard</div>
     <div class="brand-sub">Enterprise Quality Performance — Confidential</div>
   </div>
   <div>
-    <img src="data:image/png;base64,{_blend_b64}" height="34" alt="Blend" />
+    <img src="data:image/png;base64,{_blend_b64}" height="64" alt="Blend" />
   </div>
 </div>
 """, unsafe_allow_html=True)
@@ -344,7 +363,7 @@ with st.sidebar:
     # Sidebar logo
     st.markdown(f"""
     <div style="text-align:center;padding:12px 0 4px 0;">
-      <img src="data:image/png;base64,{_mcc_b64}" height="40" alt="MCC" />
+      <img src="data:image/png;base64,{_mcc_b64}" height="70" alt="MCC" />
     </div>
     <div class="sidebar-accent"></div>
     """, unsafe_allow_html=True)
@@ -387,7 +406,7 @@ with st.sidebar:
                 text-align:center;">
       <div style="font-size:10px;color:#5C6272;letter-spacing:.5px;
                   text-transform:uppercase;margin-bottom:8px;">Prepared by</div>
-      <img src="data:image/png;base64,{_blend_b64}" height="26" alt="Blend" />
+      <img src="data:image/png;base64,{_blend_b64}" height="45" alt="Blend" />
       <div style="font-size:10px;color:#5C6272;margin-top:6px;">for MCC Label Solutions</div>
     </div>
     """, unsafe_allow_html=True)
@@ -413,9 +432,10 @@ st.session_state["mcc_b64"] = _mcc_b64
 
 # ── Navigation ──────────────────────────────────────────────────────────────────
 pg = st.navigation([
-    st.Page("pages/01_overview.py",   title="Overview"),
-    st.Page("pages/02_drilldown.py",  title="Incident Detail"),
-    st.Page("pages/03_root_cause.py", title="Root Cause Analysis"),
-    st.Page("pages/04_scorecard.py",  title="Customer Scorecard"),
+    st.Page("pages/01_overview.py",   title="Overview", icon="📊"),
+    st.Page("pages/05_automated_alerts.py", title="Automated Alerts", icon="🚨"),
+    st.Page("pages/02_drilldown.py",  title="Incident Detail", icon="🔍"),
+    st.Page("pages/03_root_cause.py", title="Root Cause Analysis", icon="🔬"),
+    st.Page("pages/04_scorecard.py",  title="Customer Scorecard", icon="📈"),
 ])
 pg.run()
