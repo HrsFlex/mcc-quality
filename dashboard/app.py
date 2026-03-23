@@ -432,10 +432,10 @@ st.session_state["mcc_b64"] = _mcc_b64
 
 # ── Navigation ──────────────────────────────────────────────────────────────────
 pg = st.navigation([
-    st.Page("pages/01_overview.py",   title="Overview", icon="📊"),
-    st.Page("pages/05_automated_alerts.py", title="Automated Alerts", icon="🚨"),
-    st.Page("pages/02_drilldown.py",  title="Incident Detail", icon="🔍"),
-    st.Page("pages/03_root_cause.py", title="Root Cause Analysis", icon="🔬"),
-    st.Page("pages/04_scorecard.py",  title="Customer Scorecard", icon="📈"),
+    st.Page("pages/01_overview.py",   title="Overview"),
+    st.Page("pages/05_automated_alerts.py", title="Automated Alerts"),
+    st.Page("pages/02_drilldown.py",  title="Incident Detail"),
+    st.Page("pages/03_root_cause.py", title="Root Cause Analysis"),
+    st.Page("pages/04_scorecard.py",  title="Customer Scorecard"),
 ])
 pg.run()
